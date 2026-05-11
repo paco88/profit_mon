@@ -1,0 +1,147 @@
+
+POST /api/clearScreen
+
+{
+  "screen": 0
+}
+
+
+JSON format
+
+1) Set or replace one object
+
+POST /api/object
+
+Text
+
+{
+  "screen": 0,
+  "slot": 0,
+  "object": {
+    "type": "text",
+    "visible": true,
+    "x": 1,
+    "y": 10,
+    "r": 255,
+    "g": 255,
+    "b": 0,
+    "text": "HELLO",
+    "size": 1
+  }
+}
+
+Rectangle
+
+{
+  "screen": 0,
+  "slot": 1,
+  "object": {
+    "type": "rect",
+    "visible": true,
+    "x": 2,
+    "y": 2,
+    "w": 20,
+    "h": 10,
+    "filled": false,
+    "r": 0,
+    "g": 255,
+    "b": 0
+  }
+}
+
+Circle
+
+{
+  "screen": 0,
+  "slot": 2,
+  "object": {
+    "type": "circle",
+    "visible": true,
+    "x": 32,
+    "y": 16,
+    "radius": 6,
+    "filled": true,
+    "r": 0,
+    "g": 0,
+    "b": 255
+  }
+}
+
+Line
+
+{
+  "screen": 0,
+  "slot": 3,
+  "object": {
+    "type": "line",
+    "visible": true,
+    "x1": 0,
+    "y1": 0,
+    "x2": 63,
+    "y2": 31,
+    "r": 255,
+    "g": 0,
+    "b": 0
+  }
+}
+
+5) Clear one object
+
+POST /api/clearObject
+
+{
+  "screen": 0,
+  "slot": 0
+}
+
+
+6) Clear one whole screen
+
+POST /api/clearScreen
+
+{
+  "screen": 0
+}
+
+
+7) Optionally switch active screen from HTTP
+
+POST /api/showScreen
+
+{
+  "screen": 5
+}
+
+
+8) Query status
+
+GET /api/status
+
+
+
+Example
+
+Put text on screen 0 slot 0
+
+curl -X POST http://192.168.1.228/api/object \
+  -H "Content-Type: application/json" \
+  -d '{
+    "screen":0,
+    "slot":0,
+    "object":{
+      "type":"text",
+      "visible":true,
+      "x":1,
+      "y":8,
+      "r":255,
+      "g":255,
+      "b":0,
+      "text":"HELLO",
+      "size":1
+    }
+  }'
+
+Clear screen 0
+
+curl -X POST http://192.168.1.228/api/clearScreen?screen=0
+
