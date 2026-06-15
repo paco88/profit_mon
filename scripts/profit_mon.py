@@ -47,37 +47,40 @@ update_counts = defaultdict(int)
 def get_data(time_frame):
 	db = pymysql.connect(read_default_file='/home/paco/.mypass')
 
-	df = None
+	result = None
 
 	if time_frame == TimeFrame.DAY:
 		prev_date = date.today() - timedelta(days=1)
 		prev_eod = prev_date.isoformat() + " " + eod_time
-		df = pd.read_sql(f"select high as h, low as l, close as c from price where seccode='netLiqValue_U10600296' and `interval`='T' and utcdate>='{prev_eod}' order by utcDate", db)
+		result = pd.read_sql(f"select high as h, low as l, close as c from price where seccode='netLiqValue_U10600296' and `interval`='T' and utcdate>='{prev_eod}' order by utcDate", db)
 
 	elif time_frame == TimeFrame.WEEK:
 		today = date.today()
 		monday = today - timedelta(days=today.weekday())
 		monday_sod = monday.isoformat() + " 00:00:00"
 		df = pd.read_sql(f"select utcDate as datetime, high as h, low as l, close as c from price where seccode='netLiqValue_U10600296' and `interval`='T' and utcdate>='{monday_sod}' order by utcDate", db)
-		df = df.set_index("datetime").resample("2H").agg({"h": "max", "l": "min", "c": "last"}).dropna().reset_index()[["h", "l", "c"]]
+		if not df.empty:
+			result = df.set_index("datetime").resample("2H").agg({"h": "max", "l": "min", "c": "last"}).dropna().reset_index()[["h", "l", "c"]]
 
 	elif time_frame == TimeFrame.MONTH:
 		month_start_date = date.today().replace(day=1)
 		month_start_sod = month_start_date.isoformat() + " 00:00:00"
 		df = pd.read_sql(f"select utcDate as datetime, high as h, low as l, close as c from price where seccode='netLiqValue_U10600296' and `interval`='T' and utcdate>='{month_start_sod}' order by utcDate", db)
-		df = df.set_index("datetime").resample("D").agg({"h": "max", "l": "min", "c": "last"}).dropna().reset_index()[["h", "l", "c"]]
+		if not df.empty:
+			result = df.set_index("datetime").resample("D").agg({"h": "max", "l": "min", "c": "last"}).dropna().reset_index()[["h", "l", "c"]]
 
 	elif time_frame == TimeFrame.YEAR:
 		year_start_date = date.today().replace(month=1, day=1)
 		year_start_sod = year_start_date.isoformat() + " 00:00:00"
 		df = pd.read_sql(f"select utcDate as datetime, high as h, low as l, close as c from price where seccode='netLiqValue_U10600296' and `interval`='T' and utcdate>='{year_start_sod}' order by utcDate", db)
-		df = df.set_index("datetime").resample("W").agg({"h": "max", "l": "min", "c": "last"}).dropna().reset_index()[["h", "l", "c"]]
+		if not df.empty:
+			result = df.set_index("datetime").resample("W").agg({"h": "max", "l": "min", "c": "last"}).dropna().reset_index()[["h", "l", "c"]]
 
 	else:
 		raise ValueError("Invalid time frame: " + str(time_frame))
 
 	db.close()
-	return df
+	return result
 
 
 def post(path, payload):
@@ -103,7 +106,7 @@ def update_chart(time_frame):
 	# Get data
 	df = get_data(time_frame)
 
-	if len(df) < 2:
+	if df is None or len(df) < 2:
 		clear_screen_data = {"screen": screen}
 		post(f"/api/clearScreen", clear_screen_data)
 
